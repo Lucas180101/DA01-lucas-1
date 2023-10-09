@@ -44,4 +44,18 @@ WHERE Low_fats = 'Y' AND recyclable = 'Y'
 SELECT name FROM Customer
 WHERE NOT referee_id = 2 OR referee_id IS NULL
 -- bài tập 11 
+SELECT Name, population, area from World
+WHERE area >=3000000 OR population >= 25000000
+-- bài tập 12
+SELECT DISTINCT author_id AS id FROM Views 
+Where author_id = Viewer_id ORDER BY author_id
+-- bài tập 13 
+SELECT part, assembly_step FROM parts_assembly
+Where finish_date is NULL;
+-- bài tập 14 
+SELECT*FROM lyft_drivers
+WHERE yearly_salary <= 30000 OR yearly_salary >= 70000
+-- Bài tập 15 
+select advertising_channel from uber_advertising
+WHERE money_spent > 100000 AND year = 2019
 
