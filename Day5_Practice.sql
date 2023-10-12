@@ -23,8 +23,32 @@ HAVING COUNT(post_id)>=2;
 -- bài tập 7 
 SELECT card_name,
 MAX(issued_amount)-Min(issued_amount) AS Difference
+-- bài tập 8 
+SELECT manufacturer,
+COUNT(drug) as Drug_count,
+ABS(Sum(cogs-total_sales)) AS Total_loss
+FROM pharmacy_sales
+WHERE Total_sales<cogs
+GROUP BY manufacturer
+ORDER BY Total_loss DESC;
 FROM monthly_cards_issued
 GROUP BY(card_name)
 ORDER BY Difference DESC;
--- bài tập 8 
+-- bài tập 9
+SELECT * FROM CINEMA
+WHERE id%2=1 and description<>'boring'
+order by rating DESC;
+-- bài tập 10 
+SELECT teacher_id, COUNT(DISTINCT subject_id) AS cnt
+FROM Teacher
+GROUP BY teacher_id;
+-- bài tập 11
+SELECT  user_id, COUNT(follower_id) AS followers_count 
+FROM Followers
+GROUP BY user_id
+ORDER BY user_id;
+-- bài tập 12
+SELECT CLASS FROM Courses
+GROUP BY CLASS 
+HAVING COUNT(student)>=5;
 
