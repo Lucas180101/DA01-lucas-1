@@ -49,6 +49,6 @@ SELECT first_name, POSITION('a' IN first_name)
 FROM worker
 WHERE first_name = 'Amitah';
 -- bài tập 10
-SELECT SUBSTRING(title FROM LENGTH(winery)+2 FOR 5) AS YEAR_WINE
+SELECT SUBSTRING(title FROM LENGTH(winery)+2 FOR 4) AS YEAR_WINE
 FROM winemag_p2
 WHERE country = 'Macedonia';
