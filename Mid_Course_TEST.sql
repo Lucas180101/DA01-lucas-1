@@ -53,6 +53,24 @@ LEFT JOIN customer AS b
 ON a.address_id = b.address_id
 WHERE b.address_id IS NULL;
 -- câu 7 
+SELECT b.city, SUM(d.amount) AS total_amount
+FROM address AS a
+INNER JOIN city AS b ON a.city_id = b.city_id
+INNER JOIN customer AS c ON a.address_id = c.address_id
+INNER JOIN payment AS d ON c.customer_id = d.customer_id
+GROUP BY b.city
+ORDER BY total_amount DESC;
+-- câu 8
+SELECT e.country || ', ' || b.city AS country_city, SUM(d.amount) AS total_amount
+FROM address AS a
+INNER JOIN city AS b ON a.city_id = b.city_id
+INNER JOIN customer AS c ON a.address_id = c.address_id
+INNER JOIN payment AS d ON c.customer_id = d.customer_id
+INNER JOIN country AS e ON b.country_id = e.country_id
+GROUP BY e.country, b.city
+ORDER BY total_amount DESC;
+-- thành phố của đất nước nào đat doanh thu cao nhất ( câu này thành phố có doanh thu thấp nhất mới đúng ạ ?)
+----Answer: United States, Tallahassee : 50.85.
 
 
 
