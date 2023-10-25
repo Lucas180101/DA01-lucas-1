@@ -6,4 +6,4 @@ COUNT(job_id) AS job_count
 FROM job_listings
 GROUP BY company_id, title, description) AS job_count_cte
 WHERE job_count > 1;
--- bại tập 2
+-- bài tập 2
