@@ -37,3 +37,41 @@ WHERE transaction_rank = 1
 GROUP BY transaction_date, user_id
 ORDER BY transaction_date;
 -- bài tập 5 
+SELECT    
+user_id,    
+tweet_date,   
+ROUND(AVG(tweet_count) OVER (PARTITION BY user_id ORDER BY tweet_date     
+ROWS BETWEEN 2 PRECEDING AND CURRENT ROW),2) AS rolling_avg_3d
+FROM tweets;
+-- bài tập 6
+with cte as (select*,
+lag(transaction_timestamp) over (partition by merchant_id, credit_card_id, amount 
+order by transaction_timestamp) as prev_transaction_time 
+from transactions)
+
+select count(transaction_id) as payment_count from cte 
+where extract(epoch from transaction_timestamp - prev_transaction_time)/60 <= 10;
+-- bài tập 7
+SELECT category, product, total_spend
+FROM (SELECT *,
+RANK() OVER (PARTITION BY category ORDER BY total_spend DESC) AS rnk
+FROM (SELECT category, product, SUM(spend) AS total_spend
+FROM product_spend
+WHERE transaction_date >= '2022-01-01' AND transaction_date < '2023-01-01'
+GROUP BY category, product) AS subquery) AS ranked_data
+WHERE rnk < 3;
+-- bài tập 8 
+WITH top_10_cte AS 
+(SELECT artists.artist_name,
+DENSE_RANK() OVER (ORDER BY COUNT(songs.song_id) DESC) AS artist_rank
+FROM artists
+INNER JOIN songs
+ON artists.artist_id = songs.artist_id
+INNER JOIN global_song_rank AS ranking
+ON songs.song_id = ranking.song_id
+WHERE ranking.rank <= 10
+GROUP BY artists.artist_name)
+
+SELECT artist_name, artist_rank
+FROM top_10_cte
+WHERE artist_rank <= 5;
