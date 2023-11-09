@@ -1,13 +1,16 @@
 -- TASK Ad_HOC
 -- bài tập 1
-SELECT EXTRACT(year FROM delivered_at) || '-' || EXTRACT(month FROM delivered_at) AS month_year,
-       COUNT(user_id) AS total_user,
-       COUNT(order_id) AS total_order
-       
-FROM bigquery-public-data.thelook_ecommerce.orders
-WHERE delivered_at BETWEEN '2019-01-01'AND '2022-04-30'
-GROUP BY month_year
-ORDER BY total_order DESC
+SELECT
+  FORMAT_DATE('%Y-%m', DATE (created_at)) as month_year,
+  COUNT(DISTINCT user_id) AS total_user,
+  COUNT(order_id) AS total_order
+FROM
+  bigquery-public-data.thelook_ecommerce.orders
+WHERE
+  created_at BETWEEN '2019-01-01'
+  AND '2022-04-30'
+GROUP BY 1
+ORDER BY 1
        
 -- bài tập 2 
 WITH monthly_summary AS (
@@ -68,7 +71,11 @@ WITH MonthlyProfit AS
   FROM bigquery-public-data.thelook_ecommerce.inventory_items
 )
 
-SELECT *
+SELECT
+  month_year,
+  SUM(sales) AS total_sales,
+  SUM(cost) AS total_cost,
+  SUM(profit) AS total_profit
 FROM (
   SELECT
     month_year,
@@ -82,15 +89,16 @@ FROM (
     MonthlyProfit
 ) AS ranked_data
 WHERE ranks_per_month <= 5 
+GROUP BY
+  month_year
 ORDER BY
-  month_year,
-  ranks_per_month;
+  month_year;
+
 -- bài tập 5 
 
 WITH ThreeMonthsAgo AS (
   SELECT TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH)) AS start_date,
-         TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)) AS end_date
-)
+         TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)) AS end_date)
 
 SELECT
   FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(sold_at, DAY)) AS dates,
