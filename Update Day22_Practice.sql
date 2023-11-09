@@ -24,6 +24,7 @@ SELECT
   year || '-' || month AS year_month,   
   Product_category,
   SUM(Sale) AS TPV,
+  SUM(Cost) AS Total_Cost
   COUNT(DISTINCT order_id) AS TPO
 FROM main_data
 GROUP BY year_month, Product_category;
