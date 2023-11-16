@@ -55,5 +55,53 @@ GROUP BY EXTRACT(YEAR FROM ORDERDATE),PRODUCTLINE)
 SELECT YEAR_ID, PRODUCTLINE,REVENUE,RANK
 FROM UKProductRevenue
 WHERE RANK = 1;
+-- bài tập 5 
+WITH customer_rfm AS (
+SELECT
+a.customer_id,
+CURRENT_DATE - MAX(order_date) AS R,
+COUNT(DISTINCT order_id) AS F,
+SUM(sales) AS M
+FROM
+customer a
+JOIN
+sales b ON a.customer_id = b.customer_id
+GROUP BY
+a.customer_id),
+
+rfm_score AS (
+SELECT
+customer_id,
+NTILE(5) OVER (ORDER BY R DESC) AS R_score,
+NTILE(5) OVER (ORDER BY F) AS F_score,
+NTILE(5) OVER (ORDER BY M) AS M_score
+FROM
+customer_rfm),
+
+rfm_final AS (
+SELECT
+customer_id,
+CAST(R_score AS VARCHAR) || CAST(F_score AS VARCHAR) || CAST(M_score AS VARCHAR) AS rfm_score
+FROM
+rfm_score),
+
+ranked_customers AS (
+SELECT customer_id,
+RANK() OVER (ORDER BY CAST(rfm_score AS INT) DESC) AS rfm_rank
+FROM
+rfm_final)
+
+SELECT
+  a.customer_id,
+  b.segment,
+  c.rfm_rank
+FROM
+  rfm_final a
+JOIN
+  segment_score b ON a.rfm_score = b.scores
+JOIN
+  ranked_customers c ON a.customer_id = c.customer_id
+WHERE
+  c.rfm_rank = 1;  
 
 
