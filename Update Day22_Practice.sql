@@ -25,38 +25,39 @@ main_data AS (
 
 cte2 AS (
   SELECT 
-    year||'-' ||month as Month_1,  
+    CONCAT(year, '-', LPAD(CAST(month AS STRING), 2, '0')) as Month,  -- Ensure zero-padding for single-digit months
     year AS Year,
     Product_category,
     SUM(Sale) AS TPV,
     SUM(Cost) AS Total_Cost,
     COUNT(DISTINCT order_id) AS TPO
   FROM main_data cte
-  GROUP BY Month_1, Product_category, Year
+  GROUP BY Month, Product_category, Year
 ),
 
 Ecommerce_index AS (
   SELECT 
     TPO,
     TPV,
-    PARSE_DATE('%Y-%m', Month_1) AS cohort_date,
-    EXTRACT(MONTH FROM PARSE_DATE('%Y-%m', Month_1)) - EXTRACT(MONTH FROM first_purchase_date) + 1 AS index
+    PARSE_DATE(Month, '%Y-%m') as Month,  -- Use PARSE_DATE to convert string to date
+    FORMAT_DATE('%Y-%m', PARSE_DATE(Month, '%Y-%m')) as cohort_date,
+    (EXTRACT(YEAR FROM PARSE_DATE(Month, '%Y-%m')) - EXTRACT(YEAR FROM first_purchase_date)) * 12
+      + EXTRACT(MONTH FROM PARSE_DATE(Month, '%Y-%m')) - EXTRACT(MONTH FROM first_purchase_date) + 1 as index
   FROM (
     SELECT 
-      Month_1,
+      Month,
       Year,
       Product_category,
       TPV,
       TPO,
       Total_Cost,
       TPV - Total_Cost AS Total_profit,
-      NULLIF(Total_Cost, 0) AS NonZero_Total_Cost,
-      NULLIF(TPV - Total_Cost, 0) / NULLIF(Total_Cost, 0) AS Profit_to_cost_ratio,
-      LEAD(TPV) OVER (PARTITION BY Month_1 ORDER BY TPV) AS Next_Sale,
-      NULLIF(ROUND((TPV - LEAD(TPV) OVER (PARTITION BY Month_1 ORDER BY TPV)) / TPV * 100, 2), 0) AS Revenue_growth,
-      LEAD(TPO) OVER (PARTITION BY Month_1 ORDER BY TPO) AS Next_Order,
-      NULLIF(ROUND((TPO - LEAD(TPO) OVER (PARTITION BY Month_1 ORDER BY TPO)) / TPO * 100, 2), 0) AS Order_growth,
-      MIN(PARSE_DATE('%Y-%m', Month_1)) OVER (PARTITION BY Year) AS first_purchase_date
+      (TPV - Total_Cost) / Total_Cost AS Profit_to_cost_ratio,
+      LEAD(TPV) OVER (PARTITION BY Month ORDER BY TPV) AS Next_Sale,
+      ROUND((TPV - LEAD(TPV) OVER (PARTITION BY Month ORDER BY TPV)) / TPV * 100, 2) AS Revenue_growth,
+      LEAD(TPO) OVER (PARTITION BY Month ORDER BY TPO) AS Next_Order,
+      ROUND((TPO - LEAD(TPO) OVER (PARTITION BY Month ORDER BY TPO)) / TPO * 100, 2) AS Order_growth,
+      MIN(PARSE_DATE(Month, '%Y-%m')) OVER (PARTITION BY Year) AS first_purchase_date
     FROM cte2
   ) AS subquery
 ),
