@@ -14,8 +14,9 @@ SUM(CASE WHEN call_category IS NULL OR call_category = 'n/a'
 THEN 1 ELSE 0 END)/COUNT(call_category), 1) AS call_percentage
 FROM callers;
 -- bài tập 4 
-select name from (select name, COALESCE(referee_id,0) as 'referee_id' from customer) AS referred_List
-where referee_id <> 2
+SELECT name
+FROM customer
+WHERE COALESCE(referee_id, 0) <> 2;
 -- bài 5
 SELECT survived,
 SUM(CASE WHEN pclass = 1 THEN 1 ELSE 0 END) AS first_class,
