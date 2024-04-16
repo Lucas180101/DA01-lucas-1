@@ -13,45 +13,35 @@ GROUP BY replacement_cost
 ORDER BY replacement_cost DESC)
 SELECT SUM(Low) FROM SUM_low
 -- câu 3 
-WITH Longest_film AS
-(SELECT a.title, a.length, c.name AS category_film
+SELECT a.title,a.length, c.name AS category_name
 FROM film AS a
-INNER JOIN film_category AS b ON a.film_id = b.film_id
-INNER JOIN category AS c ON b.category_id = c.category_id
-WHERE c.name IN ('Drama', 'Sports'))
-
-SELECT title, length, category_film
-FROM Longest_film
-WHERE length = (SELECT MAX(length) FROM Longest_film)
-AND category_film = 'Sports';
+INNER JOIN film_category AS b ON a.film_id=b.film_id
+INNER JOIN category AS C ON b.category_id=c.category_id
+WHERE c.name='Drama' OR c.name='Sports'
+ORDER BY length(c.name) DESC, a.length DESC
+  
 -- câu 4 
-WITH Tong_hop AS 
-(SELECT a.title, a.length, c.name AS category_film
+SELECT c.name AS category_name, COUNT(c.name)
 FROM film AS a
-INNER JOIN film_category AS b ON a.film_id = b.film_id
-INNER JOIN category AS c ON b.category_id = c.category_id)
+INNER JOIN film_category AS b ON a.film_id=b.film_id
+INNER JOIN category AS C ON b.category_id=c.category_id
+GROUP BY category_name
+ORDER BY COUNT(c.name) DESC
 
-SELECT category_film, COUNT(category_film)||' '|| 'title' AS So_Luong 
-FROM Tong_hop
-GROUP BY category_film
 -- câu 5
-WITH Actor_Film_Count AS    
-(SELECT a.first_name || ' ' || a.last_name AS Actor_name,
-COUNT(b.film_id) AS FILM
-FROM actor AS a
-INNER JOIN film_actor AS b 
-ON a.actor_id = b.actor_id
-GROUP BY Actor_name)
-
-SELECT Actor_name, FILM
-FROM Actor_Film_Count
-WHERE FILM = (SELECT MAX(FILM) FROM Actor_Film_Count);
+SELECT c.first_name, c.last_name, Count(a.film_id) AS movies_count
+FROM film_actor AS a 
+INNER JOIN film AS b ON a.film_id=b.film_id
+INNER JOIN actor AS c ON c.actor_id=a.actor_id
+GROUP BY c.first_name, c.last_name
+ORDER BY movies_count DESC 
 -- câu 6 
-SELECT a.address_id
+SELECT COUNT(a.address_id)
 FROM address AS a
 LEFT JOIN customer AS b
 ON a.address_id = b.address_id
-WHERE b.address_id IS NULL;
+WHERE b.address_id IS NULL
+
 -- câu 7 
 SELECT b.city, SUM(d.amount) AS total_amount
 FROM address AS a
