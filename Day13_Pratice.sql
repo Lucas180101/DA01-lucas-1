@@ -86,6 +86,13 @@ LEFT JOIN Employees AS M ON E.manager_id = M.employee_id
 WHERE E.salary < 30000
 AND E.manager_id IS NOT NULL
 AND M.employee_id IS NULL
+  --- cách khác 
+SELECT employee_id
+FROM Employees
+WHERE salary < 30000
+AND manager_id NOT IN (
+  SELECT employee_id FROM Employees)
+ORDER BY employee_id;
 -- bài tập 10 
 WITH job_count_cte AS 
 (SELECT company_id,title,description,
