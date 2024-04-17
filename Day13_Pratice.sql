@@ -41,6 +41,22 @@ SELECT cte1.month_number, COUNT(DISTINCT cte1.user_id) AS monthly_active_users
 FROM cte1
 JOIN cte2 ON cte1.user_id = cte2.user_id
 GROUP BY cte1.month_number;
+
+--cách khác
+SELECT 
+  EXTRACT( MONTH FROM curr_month.event_date ) AS mth,
+  COUNT(DISTINCT curr_month.user_id) AS monthly_active_users 
+FROM user_actions AS curr_month
+WHERE EXISTS (
+  SELECT last_month.user_id
+  FROM user_actions AS last_month
+  WHERE last_month.user_id=curr_month.user_id
+  AND EXTRACT (MONTH FROM last_month.event_date)= 
+  EXTRACT(MONTH FROM curr_month.event_date - interval '1 month'))
+AND EXTRACT(MONTH FROM curr_month.event_date) = 7
+AND EXTRACT(YEAR FROM curr_month.event_date) = 2022
+GROUP BY EXTRACT(MONTH FROM curr_month.event_date);
+
 -- bài tập 6 
 SELECT CONCAT(YEAR(trans_date),'-',MONTH(trans_date)) AS MONTH,COUNTRY,COUNT(STATE) AS trans_count
 SUM(CASE WHEN STATE='approved' THEN 1 ELSE 0 END) AS approved_count,
