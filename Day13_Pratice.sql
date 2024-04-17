@@ -103,3 +103,29 @@ GROUP BY company_id, title, description)
 SELECT COUNT(DISTINCT company_id) AS duplicate_companies
 FROM job_count_cte
 WHERE job_count > 1;
+--- bài tập 11
+(
+  SELECT name AS results
+  FROM MovieRating AS a
+  INNER JOIN Users AS b ON a.user_id = b.user_id
+  GROUP BY a.user_id 
+  ORDER BY COUNT(movie_id) DESC, name ASC 
+  LIMIT 1
+)
+UNION ALL 
+(
+  SELECT title AS results
+  FROM MovieRating AS a
+  INNER JOIN Movies AS c ON a.movie_id = c.movie_id
+  WHERE created_at BETWEEN '2020-02-01' AND '2020-02-29'
+  GROUP BY a.movie_id 
+  ORDER BY AVG(rating) DESC, title ASC
+  LIMIT 1
+);
+-- bài tập 12
+WITH base AS(SELECT requester_id id FROM RequestAccepted
+union all 
+SELECT accepter_id  id FROM RequestAccepted)
+
+SELECT id, COUNT(*) num from base GROUP BY 1 ORDER BY 2 DESC limit 1
+
