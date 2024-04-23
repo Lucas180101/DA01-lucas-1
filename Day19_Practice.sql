@@ -1,4 +1,5 @@
 --bài tập 1 
+---Chuyển đổi kiểu dữ liệu phù hợp cho các trường ( sử dụng câu lệnh ALTER) 
 ALTER TABLE sales_dataset_rfm_prj
 ALTER COLUMN ordernumber TYPE numeric USING (TRIM(ordernumber):: numeric)
   
@@ -22,6 +23,8 @@ ALTER TABLE sales_dataset_rfm_prj
 ALTER COLUMN msrp TYPE numeric USING (TRIM(msrp):: numeric)
 
 -- bài tập 2 
+-- Check NULL/BLANK (‘’)  ở các trường: ORDERNUMBER, QUANTITYORDERED, PRICEEACH, ORDERLINENUMBER, SALES, ORDERDATE.
+
 SELECT *
 FROM sales_dataset_rfm_prj
 WHERE 
@@ -32,6 +35,10 @@ WHERE
     SALES IS NULL OR
     ORDERDATE IS NULL;
 -- bài tập 3 
+/*Thêm cột CONTACTLASTNAME, CONTACTFIRSTNAME được tách ra từ CONTACTFULLNAME . 
+Chuẩn hóa CONTACTLASTNAME, CONTACTFIRSTNAME theo định dạng chữ cái đầu tiên viết hoa, chữ cái tiếp theo viết thường. 
+Gợi ý: ( ADD column sau đó UPDATE)*/
+  
 ALTER TABLE sales_dataset_rfm_prj
 ADD COLUMN CONTACTLASTNAME VARCHAR(255),
 ADD COLUMN CONTACTFIRSTNAME VARCHAR(255);
@@ -41,6 +48,8 @@ SET CONTACTLASTNAME = INITCAP(SUBSTRING(CONTACTFULLNAME FROM POSITION('-' IN CON
     CONTACTFIRSTNAME = INITCAP(SUBSTRING(CONTACTFULLNAME FROM 1 FOR POSITION('-' IN CONTACTFULLNAME) - 1))
 WHERE CONTACTFULLNAME IS NOT NULL AND POSITION('-' IN CONTACTFULLNAME) > 0;
 -- bài tập 4 
+/* Thêm cột QTR_ID, MONTH_ID, YEAR_ID lần lượt là Qúy, tháng, năm được lấy ra từ ORDERDATE*/
+
 ALTER TABLE sales_dataset_rfm_prj
 ADD COLUMN QTR_ID INT,
 ADD COLUMN MONTH_ID INT,
@@ -51,20 +60,24 @@ SET QTR_ID = EXTRACT(QUARTER FROM ORDERDATE),
     MONTH_ID = EXTRACT(MONTH FROM ORDERDATE),
     YEAR_ID = EXTRACT(YEAR FROM ORDERDATE);
 -- bài tập 5 
-SELECT * FROM  sales_dataset_rfm_prj
--- tìm outliner sử dụng IQR/boxplot
-with Twt_min_max_values AS(
-SELECT Q1 - 1.5*IQR AS min_value, 
-Q3 + 1.5*IQR AS max_value FROM
-(percentile_cont (0.25) within (ORDER by QUANTITYORDERED) AS Q1, 
-percentile_cont (0.75) within (ORDER by QUANTITYORDERED) AS Q3,
-percentile_cont (0.75) within (ORDER by QUANTITYORDERED)-percentile_cont (0.25) within (ORDER by QUANTITYORDERED)AS IQR
-FROM  sales_dataset_rfm_prj) AS a)
---- Xác định outliner 
+/* Hãy tìm outlier (nếu có) cho cột QUANTITYORDERED và hãy chọn cách xử lý cho bản ghi đó (2 cách) */
+--- Phân phối chuẩn/BOXPLOT
+WITH CTE AS(SELECT Q1-1.5*IQR AS min_values,
+        Q3+ 1.5*IQR AS max_values 
+ FROM(
+	 SELECT percentile_cont (0.25) WITHIN GROUP (ORDER BY quantityordered) AS Q1,
+            percentile_cont (0.75) WITHIN GROUP (ORDER BY quantityordered) AS Q3,
+            percentile_cont (0.75) WITHIN GROUP (ORDER BY quantityordered)-
+	        percentile_cont (0.25) WITHIN GROUP (ORDER BY quantityordered) AS IQR
+     FROM sales_dataset_rfm_prj) 
+AS SUB_QUERY)
+-- xác định outliner
 SELECT * FROM sales_dataset_rfm_prj
-WHERE QUANTITYORDERED< (SELECT min_value FROM Twt_min_max_values )
-or QUANTITYORDERED> (SELECT max_value FROM Twt_min_max_values )
---- sử dụng Z-score 
+WHERE quantityordered < (SELECT min_values FROM CTE ) OR
+      quantityordered > (SELECT max_values FROM CTE )
+
+  
+  --- sử dụng Z-score 
 SELECT avg(QUANTITYORDERED),
 stddev(QUANTITYORDERED)
 FROM sales_dataset_rfm_prj
@@ -79,23 +92,17 @@ from cte
 where ABS ((QUANTITYORDERED-avg)/stddev)>2)
 
 UPDATE sales_dataset_rfm_prj
-SET QUANTITYORDERED=(avg(QUANTITYORDERED) FROM sales_dataset_rfm_prj)
+SET QUANTITYORDERED=(SELECT avg(QUANTITYORDERED) FROM sales_dataset_rfm_prj)
 WHERE QUANTITYORDERED IN(SELECT QUANTITYORDERED FROM twt_outliner);
 
 DELETE FROM sales_dataset_rfm_prj
 WHERE QUANTITYORDERED IN(SELECT QUANTITYORDERED FROM twt_outliner);
 
 -- bài tập 6 
+--- lưu bảng với tên mới 
 CREATE TABLE SALES_DATASET_RFM_PRJ_CLEAN AS
 SELECT *
-FROM sales_dataset_rfm_prj
-WHERE 
-    ORDERNUMBER IS NOT NULL AND
-    QUANTITYORDERED IS NOT NULL AND
-    PRICEEACH IS NOT NULL AND
-    ORDERLINENUMBER IS NOT NULL AND
-    SALES IS NOT NULL AND
-    ORDERDATE IS NOT NULL;
+FROM sales_dataset_rfm_prj.
 
 
 
