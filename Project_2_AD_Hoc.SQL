@@ -50,5 +50,60 @@ GROUP BY 1,2
 /* Người trẻ nhất thuộc độ tuổi 12 tuổi có 981 người 
 Người già nhất có độ tuổi 70 tuổi có 1054 người */
 
--- Câu 4
+-- bài tập 4
+WITH MonthlyProfit AS 
+(
+  SELECT
+    FORMAT_TIMESTAMP('%Y-%m', sold_at) AS month_year,
+    product_id,
+    product_name,
+    product_retail_price AS sales,
+    cost,
+    (product_retail_price - cost) AS profit
+  FROM bigquery-public-data.thelook_ecommerce.inventory_items
+)
+
+SELECT
+  month_year,
+  SUM(sales) AS total_sales,
+  SUM(cost) AS total_cost,
+  SUM(profit) AS total_profit
+FROM (
+  SELECT
+    month_year,
+    product_id,
+    product_name,
+    sales,
+    cost,
+    profit,
+    DENSE_RANK() OVER (PARTITION BY month_year ORDER BY profit DESC) AS ranks_per_month
+  FROM
+    MonthlyProfit
+) AS ranked_data
+WHERE ranks_per_month <= 5 
+GROUP BY
+  month_year
+ORDER BY
+  month_year;
+
+-- bài tập 5 
+
+WITH ThreeMonthsAgo AS (
+  SELECT TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH)) AS start_date,
+         TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)) AS end_date)
+
+SELECT
+  FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(sold_at, DAY)) AS dates,
+  product_category AS product_categories,
+  SUM(product_retail_price) AS revenue
+FROM
+  bigquery-public-data.thelook_ecommerce.inventory_items
+WHERE
+  sold_at BETWEEN (SELECT start_date FROM ThreeMonthsAgo) AND (SELECT end_date FROM ThreeMonthsAgo)
+GROUP BY
+  dates,
+  product_category
+ORDER BY
+  dates,
+  product_category;
 
