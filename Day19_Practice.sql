@@ -1,26 +1,15 @@
 --bài tập 1 
 ---Chuyển đổi kiểu dữ liệu phù hợp cho các trường ( sử dụng câu lệnh ALTER) 
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN ordernumber TYPE numeric USING (TRIM(ordernumber):: numeric)
-  
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN quantityordered TYPE numeric USING (TRIM(quantityordered):: numeric)
-  
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN priceeach TYPE numeric USING (TRIM(priceeach):: numeric)
-  
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN orderlinenumber TYPE numeric USING (TRIM(orderlinenumber):: numeric)
-
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN sales TYPE float USING (TRIM(sales):: float)
-
 SET datestyle = 'iso,mdy';  
-ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN orderdate TYPE date USING (TRIM(orderdate):: date)
 
 ALTER TABLE sales_dataset_rfm_prj
-ALTER COLUMN msrp TYPE numeric USING (TRIM(msrp):: numeric)
+ALTER COLUMN ordernumber TYPE numeric USING (TRIM(ordernumber)::numeric),
+ALTER COLUMN quantityordered TYPE numeric USING (TRIM(quantityordered)::numeric),
+ALTER COLUMN priceeach TYPE numeric USING (TRIM(priceeach)::numeric),
+ALTER COLUMN orderlinenumber TYPE numeric USING (TRIM(orderlinenumber)::numeric),
+ALTER COLUMN sales TYPE float USING (TRIM(sales)::float),
+ALTER COLUMN orderdate TYPE date USING (TRIM(orderdate)::date),
+ALTER COLUMN msrp TYPE numeric USING (TRIM(msrp)::numeric);
 
 -- bài tập 2 
 -- Check NULL/BLANK (‘’)  ở các trường: ORDERNUMBER, QUANTITYORDERED, PRICEEACH, ORDERLINENUMBER, SALES, ORDERDATE.
